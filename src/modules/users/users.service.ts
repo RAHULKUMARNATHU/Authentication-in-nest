@@ -8,6 +8,8 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class UsersService {
   constructor(@InjectRepository(Users) private repo: Repository<Users>) {}
+  
+  
   async create(
     firstName: string,
     lastName: string,

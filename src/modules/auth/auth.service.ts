@@ -28,13 +28,13 @@ export class AuthService {
       throw new BadRequestException('Sorry :)Already Email In Use ');
     }
     const saltOrRounds = await bcrypt.genSalt();
-    const result = await bcrypt.hash(password, saltOrRounds);
+    const bcryptPassword = await bcrypt.hash(password, saltOrRounds);
 
     const user = await this.userService.create(
       firstName,
       lastName,
       userName,
-      result,
+      bcryptPassword,
     );
     return user;
   }
