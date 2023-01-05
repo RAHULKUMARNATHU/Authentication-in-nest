@@ -6,7 +6,7 @@ import { DatabaseConnectionService } from './database/database-connection.servic
 // import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './modules/auth/auth.service';
-import {  AuthModule } from './modules/auth/auth.module';
+// import {  AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -16,7 +16,7 @@ import { UsersModule } from './modules/users/users.module';
       useClass: DatabaseConnectionService,
     }),
     UsersModule,
-    AuthModule
+    // AuthModule
   ],
   controllers: [AppController],
   providers: [AppService ],
