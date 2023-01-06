@@ -27,12 +27,7 @@ export class UsersController {
   @Post('/create')
   create(@Body() body: CreateUserDto) {
     try {
-      return this.authService.createUser(
-        body.firstName,
-        body.lastName,
-        body.userName,
-        body.password,
-      );
+      return this.authService.createUser(body);
     } catch (err) {
       throw new BadRequestException('Error');
     }
@@ -57,7 +52,6 @@ export class UsersController {
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')

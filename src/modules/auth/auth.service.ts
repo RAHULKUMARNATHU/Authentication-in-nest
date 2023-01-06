@@ -17,25 +17,15 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async createUser(
-    firstName: string,
-    lastName: string,
-    userName: string,
-    password: string,
-  ) {
-    const users = await this.userService.findByUserName(userName);
+  async createUser(body: CreateUserDto) {
+    const users = await this.userService.findByUserName(body.userName);
     if (users) {
       throw new BadRequestException('Sorry :)Already Email In Use ');
     }
     const saltOrRounds = await bcrypt.genSalt();
-    const bcryptPassword = await bcrypt.hash(password, saltOrRounds);
+    const bcryptPassword = await bcrypt.hash(body.password, saltOrRounds);
 
-    const user = await this.userService.create(
-      firstName,
-      lastName,
-      userName,
-      bcryptPassword,
-    );
+    const user = await this.userService.create(body, bcryptPassword);
     return user;
   }
 
