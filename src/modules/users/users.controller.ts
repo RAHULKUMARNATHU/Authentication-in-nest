@@ -9,6 +9,8 @@ import {
   BadRequestException,
   UseGuards,
   Request,
+  Res,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from '../auth/auth.service';
 import { LoginUserDto } from './dto/login-user-dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class UsersController {
@@ -62,5 +65,21 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+
+
+
+
+  @Post("/forgetPassword")
+  async forgetPassword(@Res() res: Response){
+    const data = await this.authService.forgetPassword();
+
+
+    res.status(HttpStatus.OK).send({
+      success:HttpStatus.OK,
+      message:"forget Password link sent to mail",
+      data
+    })
   }
 }
