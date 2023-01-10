@@ -29,6 +29,8 @@ export class UsersController {
 
   @Post('/create')
   create(@Body() body: CreateUserDto) {
+    console.log(">>>>>>>>>>>>>>>>>>>",body);
+    
     try {
       return this.authService.createUser(body);
     } catch (err) {
