@@ -41,7 +41,11 @@ export class AuthService {
       throw new BadRequestException('Bad Password');
     }
     // return user;
-    const payload = { username: user.userName, userId: user.id };
+    const payload = {
+      username: user.userName,
+      userId: user.id,
+      role: user.role,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
