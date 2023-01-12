@@ -11,6 +11,8 @@ import {
   Request,
   Res,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,7 +33,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { storage } from 'src/config/storage.config';
 @ApiTags('Auth- Module')
 @Controller('auth')
 export class UsersController {
@@ -178,4 +181,18 @@ export class UsersController {
     return req.user;
     // return 'hello';
   }
+
+
+
+  @Post("upload") // API path
+  @UseInterceptors(
+    FileInterceptor(
+      "file", // name of the field being passed
+      { storage }
+    )
+  )
+  async upload(@UploadedFile() file) {
+    return file;
+  }
+
 }
