@@ -13,6 +13,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -35,9 +36,16 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { storage } from 'src/config/storage.config';
+import { forgetPasswordDto } from './dto/forget-password';
+import { resetPasswordDto } from './dto/reset-password.dto';
+import { jwtConstants } from 'src/constants';
+
+
+
 @ApiTags('Auth- Module')
 @Controller('auth')
 export class UsersController {
+   jwt = require('jsonwebtoken')
   constructor(
     private readonly usersService: UsersService,
     private authService: AuthService,
@@ -162,16 +170,54 @@ export class UsersController {
     return this.usersService.remove(+id);
   }
 
-  @Post('/forgetPassword')
-  async forgetPassword(@Res() res: Response) {
-    const data = await this.authService.forgetPassword();
+  // @Post('/forgetPassword')
+  // async forgetPassword(@Res() res: Response) {
+  //   const data = await this.authService.forgetPassword( );
 
-    res.status(HttpStatus.OK).send({
-      success: HttpStatus.OK,
-      message: 'forget Password link sent to mail',
-      data,
-    });
-  }
+  //   res.status(HttpStatus.OK).send({
+  //     success: HttpStatus.OK,
+  //     message: 'forget Password link sent to mail',
+  //     data,
+  //   });
+  // }
+
+
+
+
+  @Post('/forget')
+    async forgetPassword(@Res() res: Response,
+        @Body() body: forgetPasswordDto
+    ): Promise<void> {
+        const user = await this.authService.forgetPassword(body);
+        res.status(HttpStatus.OK).send({
+            success: HttpStatus.OK,
+            // user,
+            message: `Password Reset Link Has Been Sent To Your Email:- ${user.userName} `,
+        });
+    }
+
+    @Post('/resetPassword/:id/:token')
+    async resetPassword(@Request() req,
+        @Res() res: Response,
+        @Body() body: resetPasswordDto) {
+
+        const { id, token } = req.params;
+        const user = await this.usersService.findOne(+id)
+        if (user.userName) {
+            const secret = jwtConstants + user.password;
+
+            try {
+                const payload = this.jwt.verify(token, secret);
+                if (payload)
+                    res.send(await this.authService.setPassword(req.params.id , body));
+            } catch (err) {
+                console.log(err.message);
+                res.send(err);
+            }
+        } else {
+            throw new UnauthorizedException('Invalid User')
+        }
+    }
 
   // @UseGuards(RolesGuard)
   @Roles(Role.USER, Role.ADMIN)

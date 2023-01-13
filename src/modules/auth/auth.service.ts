@@ -1,6 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,9 +11,14 @@ import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
+import { forgetPasswordDto } from '../users/dto/forget-password';
+import { jwtConstants } from 'src/constants';
+import { resetPasswordDto } from '../users/dto/reset-password.dto';
 const scrypt = promisify(_scrypt);
+
 @Injectable()
 export class AuthService {
+  jwt = require('jsonwebtoken');
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
@@ -51,7 +58,39 @@ export class AuthService {
     };
   }
 
-  async forgetPassword() {
-    return 'nodemailer';
+  async forgetPassword(body: forgetPasswordDto) {
+    const user = await this.userService.findByUserName(body.userName);
+    if (!user) {
+      throw new NotFoundException('User Not Registered');
+    }
+    const secret = jwtConstants + user.password;
+    const payload = {
+      id: user.id,
+      email: user.userName,
+    };
+    const token = this.jwt.sign(payload, secret, { expiresIn: '1d' });
+    const link = `http://localhost:3000/auth/resetPassword/${user.id}/${token}`;
+    console.log(link);
+    // console.log(token);
+    return user;
+  }
+
+  async setPassword(id: number, body: resetPasswordDto): Promise<string> {
+    if (body.password === body.confirmPassword) {
+      const salt = await bcrypt.genSalt();
+      const hashPassword = await bcrypt.hash(body.password, salt);
+      const updatePassword = await this.userService.updatePassword(id, hashPassword);
+
+      if (updatePassword) {
+        return 'Password Updated Successfully!!';
+      } else {
+        throw new HttpException(
+          'Error While Updating Password',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      throw new HttpException('Password Not Matched', HttpStatus.BAD_REQUEST);
+    }
   }
 }
