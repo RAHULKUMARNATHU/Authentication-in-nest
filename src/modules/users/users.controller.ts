@@ -200,13 +200,16 @@ export class UsersController {
   ) {
     const { id, token } = req.params;
     const user = await this.usersService.findOne(+id);
-    if (user.id === id) {
+    if (user.userName) {
       const secret = jwtConstants + user.password;
 
       try {
         const payload = this.jwt.verify(token, secret);
-        if (payload)
+        if (payload.id == id) {
           res.send(await this.authService.setPassword(req.params.id, body));
+        } else {
+          throw new BadRequestException('Modified Id or token Error ');
+        }
       } catch (err) {
         console.log(err.message);
         res.send(err);
